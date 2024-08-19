@@ -100,8 +100,11 @@ export class HomeComponent {
 
       this.routeControl = L.Routing.control({
         waypoints: waypoints,
-        routeWhileDragging: true,
+        routeWhileDragging: false,
         show: true,
+        router: new L.Routing.OSRMv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1'
+        }),
       }).addTo(this.map);
 
       this.routeControl.on('routesfound', (e: any) => {
