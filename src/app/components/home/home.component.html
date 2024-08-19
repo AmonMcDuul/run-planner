@@ -1,29 +1,32 @@
-<h1>Routes!@#</h1>
 <div class="map-container">
-    <div class="map-box"
-         leaflet 
-         [leafletOptions]="options"
-         (leafletMapReady)="onMapReady($event)">
+    <div>
+        <h1>Routes!$#</h1>
+        <div class="map-box"
+        leaflet 
+        [leafletOptions]="options"
+        (leafletMapReady)="onMapReady($event)">
     </div>
+</div>
+<div>
+    <h1>{{ selectedRouteName }}</h1>
     <div class="info-box">
-        <p>Total Distance:</p>
-        <h2>{{ distance().toFixed(0) }} m</h2>
-        <h2>{{ (distance() / 1000).toFixed(2) }} km</h2>
-        <h2>{{ metersToTime(distance()) }} 5:00 /km pace</h2>
-        <button (click)="removeAllMarkers()">Remove all markers</button>
-        <button (click)="saveRoute()">Save Route</button>
-        @if(savedRoutes.length > 0){
-            <h3>Saved Routes</h3>
-            <ul>
-                @for(route of savedRoutes; let i = $index; track route){
-                    <li>
-                        <button (click)="restoreRoute(i)">Restore Route {{ i + 1 }}</button>
-                    </li>
-                }
-            </ul>
-        }
-        <p>Click a marker to remove it.</p>
+        <h2>{{ (distance() / 1000).toFixed(2) }} km</h2>        <h2>Estimated time: {{ metersToTime(distance()) }} 5:00 /km pace</h2>
+        <div class="new-route-container">
+            <div class="new-options">
+            <button (click)="removeAllMarkers()">New Route</button>
+            <button (click)="saveRoute()">Save Route</button>
+        </div>
+                <input [(ngModel)]="routeName" [ngClass]="{'input-error' : inputError}" placeholder="Enter route name" />
+        </div>
+        <div *ngIf="savedRoutes.length > 0">
+            <h3>Saved Routes</h3>            
+            <li *ngFor="let route of savedRoutes; let i = index">
+                <button class="button" (click)="restoreRoute(i)">Load</button>
+                <button (click)="deleteRoute(i)">Delete</button>
+                <label>{{ route.name }}, {{ (route.distance / 1000).toFixed(2) }}km</label>
+            </li>
+        </div>
         <div class="route-itinerary" #routeItinerary></div> 
     </div>
 </div>
-
+</div>

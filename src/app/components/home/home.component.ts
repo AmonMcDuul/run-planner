@@ -1,37 +1,39 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, signal, ViewChild, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { latLng, marker, tileLayer, Map, Marker, LatLng } from 'leaflet';
-// import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 
-
 interface SavedRoute {
+  name: string;
   waypoints: LatLng[];
   distance: number;
   estimatedTime: number;
 }
 
-declare var L :any;
+declare var L: any;
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [LeafletModule, CommonModule],
+  imports: [LeafletModule, CommonModule, FormsModule],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   
   @ViewChild('routeItinerary', { static: false }) routeItineraryRef!: ElementRef;
-  
+
   map!: Map;
   markers: Marker[] = [];
   routeControl: any;
   distance = signal(0);
   estimatedTime = signal(0);
   savedRoutes: SavedRoute[] = [];
+  routeName = '';
+  inputError = false;
+  selectedRouteName = 'New route';
 
   options = {
     layers: [
@@ -57,6 +59,10 @@ export class HomeComponent {
     shadowAnchor: [4, 62],
     popupAnchor: [-3, -76]
   });
+
+  ngOnInit() {
+    this.loadRoutes();
+  }
 
   onMapReady(map: Map) {
     this.map = map;
@@ -95,6 +101,7 @@ export class HomeComponent {
   }
 
   updateRoute() {
+    this.selectedRouteName = 'New route';
     if (this.routeControl) {
       this.map.removeControl(this.routeControl);
     }
@@ -106,9 +113,11 @@ export class HomeComponent {
         waypoints: waypoints,
         routeWhileDragging: false,
         show: true,
-        // router: new L.Routing.OSRMv1({
-        //   serviceUrl: 'https://router.project-osrm.org/route/v1'
-        // }),
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1/',
+          profile: 'foot' 
+          
+        }),
       }).addTo(this.map);
 
       this.routeControl.on('routesfound', (e: any) => {
@@ -129,18 +138,45 @@ export class HomeComponent {
   }
 
   saveRoute() {
+    if (this.routeName.trim() === '') {
+      this.inputError = true;
+      return;
+    }
+
     const savedRoute: SavedRoute = {
+      name: this.routeName,
       waypoints: this.markers.map(m => m.getLatLng()),
       distance: this.distance(),
       estimatedTime: this.estimatedTime()
     };
+
     this.savedRoutes.push(savedRoute);
+    this.routeName = '';
+    this.inputError = false;
+    this.saveRoutesToLocalStorage();
   }
 
   restoreRoute(index: number) {
     this.removeAllMarkers();
     const route = this.savedRoutes[index];
     route.waypoints.forEach(latlng => this.addMarker(latlng));
+    this.selectedRouteName = route.name;
+  }
+
+  deleteRoute(index: number) {
+    this.savedRoutes.splice(index, 1);
+    this.saveRoutesToLocalStorage();
+  }
+
+  loadRoutes() {
+    const savedRoutes = localStorage.getItem('savedRoutes');
+    if (savedRoutes) {
+      this.savedRoutes = JSON.parse(savedRoutes);
+    }
+  }
+
+  saveRoutesToLocalStorage() {
+    localStorage.setItem('savedRoutes', JSON.stringify(this.savedRoutes));
   }
 
   metersToTime(meters: number, pace: number = 5) { 
