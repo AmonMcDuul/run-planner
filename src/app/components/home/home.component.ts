@@ -2,14 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, signal, ViewChild } from '@angular/core';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { latLng, marker, tileLayer, Map, Marker, LatLng } from 'leaflet';
-import * as L from 'leaflet';
+// import * as L from 'leaflet';
 import 'leaflet-routing-machine';
+
 
 interface SavedRoute {
   waypoints: LatLng[];
   distance: number;
   estimatedTime: number;
 }
+
+declare var L :any;
 
 @Component({
   selector: 'app-home',
@@ -20,6 +23,7 @@ interface SavedRoute {
 })
 
 export class HomeComponent {
+  
   @ViewChild('routeItinerary', { static: false }) routeItineraryRef!: ElementRef;
   
   map!: Map;
@@ -102,9 +106,9 @@ export class HomeComponent {
         waypoints: waypoints,
         routeWhileDragging: false,
         show: true,
-        router: new L.Routing.OSRMv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1'
-        }),
+        // router: new L.Routing.OSRMv1({
+        //   serviceUrl: 'https://router.project-osrm.org/route/v1'
+        // }),
       }).addTo(this.map);
 
       this.routeControl.on('routesfound', (e: any) => {
